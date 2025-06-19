@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>下单页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="number"] { width: 200px; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .info { margin-top: 20px; border: 1px solid #eee; padding: 15px; background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+<h1>创建新订单</h1>
+
+<form action="/placeOrder" method="post">
+    <label for="userId">用户ID (输入 1 或 2):</label>
+    <input type="number" id="userId" name="userId" value="1" required><br>
+
+    <label for="productId">商品ID (输入 101 或 102):</label>
+    <input type="number" id="productId" name="productId" value="101" required><br>
+
+    <button type="submit">下单</button>
+</form>
+
+<div class="info">
+    <h3>可用信息（模拟）:</h3>
+    <p><strong>用户:</strong> <span th:text="${users}"></span></p>
+    <p><strong>商品:</strong> <span th:text="${products}"></span></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+server:
+  port: 8083 # Unique port
+
+spring:
+  application:
+    name: provider-ord2

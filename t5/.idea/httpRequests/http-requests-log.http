@@ -1,0 +1,36 @@
+GET http://localhost:8090/consumer/data/1
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.3.5
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2025-04-24T103329.200.txt
+
+###
+
+GET http://localhost:8090/consumer/data/1
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.3.5
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2025-04-24T103327.200.txt
+
+###
+
+GET http://localhost:8090/consumer/data/1
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.3.5
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2025-04-24T103316.200.txt
+
+###
+
+GET http://localhost:8081/provider/data/1
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.3.5
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2025-04-24T091511.200.json
+
+###
+

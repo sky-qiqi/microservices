@@ -1,0 +1,44 @@
+server:
+  port: 8090 # 消费者端口
+
+# 合并所有的 spring 配置到这里
+spring:
+  application:
+    name: consumer-service
+  cloud: # 将第二个 spring: 下面的 cloud 配置移动到这里
+    openfeign:
+      circuitbreaker:
+        enabled: true # 显式启用 Feign 的 Circuit Breaker 功能
+    circuitbreaker:
+      resilience4j:
+        enabled: true # 确认 Resilience4j Circuit Breaker 整体是启用的
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true # 消费者也注册到Eureka，虽然它主要是调用方
+  instance:
+    prefer-ip-address: true
+
+# Feign 配置 (feign 键与 spring 和 eureka 同级)
+feign:
+  client:
+    config:
+      # 对 provider-service 应用特定的 Feign 配置
+      provider-service:
+        # 连接和读取超时时间（毫秒）
+        connectTimeout: 5000
+        readTimeout: 5000
+
+
+# 日志级别
+logging:
+  level:
+    com.example.consumer: DEBUG
+    com.example.commonfeign.client: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    # Enable this for LoadBalancer debugging if needed
+    # org.springframework.cloud.loadbalancer: TRACE

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: http://192.168.231.128:9091/root/jmt.git
+          searchPaths: props
+          cloneOnStart: true
+          username: root
+          password: QWER123456qwer
+          default-label: main
+
+server:
+  port: 8888
+
+logging:
+  level:
+    org.springframework.cloud.config.server: DEBUG

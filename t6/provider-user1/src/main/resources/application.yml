@@ -1,0 +1,6 @@
+server:
+  port: 8084 # Unique port
+
+spring:
+  application:
+    name: provider-user1

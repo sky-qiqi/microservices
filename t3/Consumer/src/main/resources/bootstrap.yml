@@ -1,0 +1,17 @@
+server:
+  port: 8081  # 确保端口未被占用且防火墙开放
+
+spring:
+  application:
+    name: consumer.yml  # 服务名需与Nacos中的DataID对应（如provide.yml）
+  cloud:
+    nacos:
+      config:
+        server-addr: 192.168.231.128:8848  # Nacos服务端地址[2,6](@ref)
+        namespace: dev-ns-id                # dev命名空间ID（需替换实际值）
+        file-extension: yaml                # 配置文件格式[5,10](@ref)
+        group: DEFAULT_GROUP                # 默认分组[7,11](@ref)
+        # 多配置文件加载配置[3,10](@ref)
+        import:
+          - optional:nacos:provide.yml?group=DEFAULT_GROUP&refresh=true
+          - optional:nacos:consumer.yml?group=DEFAULT_GROUP&refresh=true

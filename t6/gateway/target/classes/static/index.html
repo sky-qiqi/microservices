@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网关测试</title> <link rel="stylesheet" href="style.css">
+    <style>
+        /* 如果引入了外部字体，可以在这里设置 */
+        /* body { font-family: 'Share Tech Mono', monospace; } */
+        /* h1, h2 { font-family: 'Orbitron', sans-serif; } */
+    </style>
+</head>
+<body>
+<h1>Spring Cloud Gateway 测试 (t6)</h1>
+
+<div class="section">
+    <h2>路由测试</h2>
+    <p>点击这些按钮测试加权负载均衡、特殊路由和 URL 重写。</p>
+
+    <button onclick="makeRequest(event, '/ord/item/1')" data-result-id="result-ord-item-1">请求订单 (加权 ORD 组)</button>
+    <pre id="result-ord-item-1" class="button-result">响应将显示在这里...</pre> <br>
+
+    <button onclick="makeRequest(event, '/user/profile/1')" data-result-id="result-user-profile-1">请求用户 (加权 USER 组)</button>
+    <pre id="result-user-profile-1" class="button-result">响应将显示在这里...</pre> <br>
+
+    <button onclick="makeRequest(event, '/ordspecial', true)" data-result-id="result-ordspecial-cookie">请求特殊订单 (带 Cookie 'name')</button>
+    <pre id="result-ordspecial-cookie" class="button-result">响应将显示在这里...</pre> <br>
+
+    <button onclick="makeRequest(event, '/ordspecial', false)" data-result-id="result-ordspecial-no-cookie">请求特殊订单 (不带 Cookie)</button>
+    <pre id="result-ordspecial-no-cookie" class="button-result">响应将显示在这里...</pre> <br>
+
+    <button onclick="makeRequest(event, '/test1')" data-result-id="result-rewrite-test1">请求重写测试 (外部 /test1 -> 内部 /x/y/test1)</button>
+    <pre id="result-rewrite-test1" class="button-result">响应将显示在这里...</pre> <br>
+
+</div>
+
+<div class="section">
+    <h2>过滤器测试 (AES 请求体加解密)</h2>
+    <p>输入包含 'mydata' 字段的 JSON。FilterTest1 在转发前加密 'mydata'。FilterTest2 解密 'mydata'。</p>
+    <p>过滤器测试输入 (JSON 'mydata' 字段): <input type="text" id="myDataInput" value='{"someField":"hello world","mydata":"sensitive data here","anotherField":123}' size="80"></p>
+
+    <button onclick="sendFilterTest1(event)" data-result-id="result-filter-test1">发送到 FilterTest1 (加密 & 调用 provider-test1 -> 网关 /filtertest2 -> provider-test2)</button>
+    <pre id="result-filter-test1" class="button-result">响应将显示在这里...</pre> <br>
+
+    <button onclick="sendFilterTest2(event)" data-result-id="result-filter-test2">直接发送到 FilterTest2 (解密 & 调用 provider-test2)</button>
+    <pre id="result-filter-test2" class="button-result">响应将显示在这里...</pre> <br>
+</div>
+
+<div class="section">
+    <h2>限流测试</h2>
+    <p>通过快速重复点击下面的按钮来测试限流功能。当达到限流阈值时，您应该会收到 429 Too Many Requests 响应。</p>
+    <button onclick="makeRequest(event, '/ordspecial', true)" data-result-id="result-rate-limit">快速点击测试限流 (/ordspecial 带 Cookie)</button>
+    <pre id="result-rate-limit" class="button-result">响应将显示在这里...</pre> <br>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

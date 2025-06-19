@@ -1,0 +1,6 @@
+server:
+  port: 8081 # Unique port for this provider
+
+spring:
+  application:
+    name: provider-ord1 # Application name (useful for logging/monitoring)

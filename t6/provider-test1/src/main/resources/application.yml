@@ -1,0 +1,6 @@
+server:
+  port: 8086 # Unique port
+
+spring:
+  application:
+    name: provider-test1

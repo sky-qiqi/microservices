@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: app
+  cloud:
+    config:
+      uri: http://localhost:8888
+      username: root
+      password: Jmt123456
+  profiles:
+    active: pro
+  config:
+    import: "configserver:"
+
+server:
+  port: 8182
+
+name: qwe

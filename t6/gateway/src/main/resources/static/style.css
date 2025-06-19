@@ -1,0 +1,160 @@
+/* style.css - 赛博朋克风格 */
+
+:root {
+    /* 定义赛博朋克配色变量 */
+    --color-bg-dark: #0a0a0f; /* 深色背景 */
+    --color-text-main: #00f0ff; /* 主文本色 (电光蓝) */
+    --color-text-secondary: #b388ff; /* 次要文本色 (紫色) */
+    --color-accent-pink: #ff1493; /* 强调色 (亮粉) */
+    --color-accent-blue: #00ffff; /* 强调色 (青色) */
+    --color-border: #39ff14; /* 边框色 (荧光绿) */
+    --color-glow-pink: #ff1493;
+    --color-glow-blue: #00ffff;
+    --color-glow-green: #39ff14;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 尝试一些现代化字体 */
+    /* font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace; /* 或者更科技感的等宽字体 */
+    margin: 0; /* 移除默认 margin */
+    padding: 20px;
+    line-height: 1.6;
+    background-color: var(--color-bg-dark); /* 应用深色背景 */
+    color: var(--color-text-main); /* 应用主文本色 */
+    min-height: 100vh; /* 确保背景覆盖整个视口 */
+    /* 可选: 添加背景纹理或渐变 */
+    /* background-image: url('cyberpunk-grid.png'); */
+    /* background-size: cover; */
+}
+
+h1, h2 {
+    color: var(--color-accent-blue); /* 标题使用强调色 */
+    border-bottom: 2px solid var(--color-border); /* 荧光绿底部边框 */
+    padding-bottom: 10px;
+    margin-top: 30px;
+    text-shadow: 0 0 8px var(--color-glow-blue), 0 0 12px var(--color-glow-blue); /* 添加霓虹发光效果 */
+    text-transform: uppercase; /* 大写 */
+    letter-spacing: 2px; /* 增加字母间距 */
+}
+
+h1 {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+.section {
+    margin-bottom: 40px;
+    padding: 20px;
+    border: 1px solid var(--color-border); /* 边框 */
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5); /* 边框发光 */
+    background-color: rgba(10, 10, 15, 0.5); /* 半透明背景 */
+    border-radius: 5px; /* 轻微圆角 */
+}
+
+button {
+    background-color: var(--color-bg-dark); /* 按钮背景 */
+    color: var(--color-text-main); /* 按钮文本 */
+    border: 2px solid var(--color-accent-pink); /* 粉色边框 */
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 10px 10px 10px 0;
+    transition: all 0.3s ease; /* 添加过渡效果 */
+    box-shadow: 0 0 5px var(--color-glow-pink); /* 按钮发光 */
+    border-radius: 3px;
+}
+
+button:hover {
+    background-color: var(--color-accent-pink); /* 悬停背景变粉色 */
+    color: var(--color-bg-dark); /* 悬停文本变深色 */
+    border-color: var(--color-accent-pink);
+    box-shadow: 0 0 15px var(--color-glow-pink); /* 悬停发光更强 */
+    text-shadow: 0 0 8px var(--color-bg-dark);
+}
+
+button:active {
+    background-color: var(--color-accent-blue); /* 点击背景变蓝色 */
+    box-shadow: 0 0 15px var(--color-glow-blue); /* 点击发光变蓝色 */
+}
+
+
+.button-result {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 2px solid var(--color-accent-blue); /* 蓝色边框 */
+    background-color: rgba(0, 0, 30, 0.7); /* 深蓝半透明背景 */
+    color: var(--color-text-secondary); /* 使用次要文本色或等宽字体色 */
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 250px; /* 稍微增加高度 */
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace; /* 等宽字体 */
+    display: block;
+    width: calc(100% - 34px); /* 调整宽度 */
+    box-sizing: border-box;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.4); /* 蓝色发光 */
+    border-radius: 5px;
+}
+
+/* 滚动条美化 (部分浏览器支持) */
+.button-result::-webkit-scrollbar {
+    width: 8px;
+}
+
+.button-result::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.button-result::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+
+.button-result::-webkit-scrollbar-thumb:hover {
+    background: var(--color-glow-green);
+}
+
+
+input[type="text"] {
+    background-color: var(--color-bg-dark); /* 输入框背景 */
+    color: var(--color-text-main); /* 输入框文本 */
+    border: 1px solid var(--color-border); /* 输入框边框 */
+    padding: 8px;
+    font-size: 1em;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    border-radius: 3px;
+    text-shadow: 0 0 5px var(--color-glow-green); /* 文本发光 */
+}
+
+input[type="text"]:focus {
+    outline: none; /* 移除默认轮廓 */
+    border-color: var(--color-accent-pink); /* 聚焦时边框变色 */
+    box-shadow: 0 0 8px var(--color-glow-pink); /* 聚焦时发光 */
+}
+
+p {
+    color: var(--color-text-secondary); /* 段落使用次要文本色 */
+    margin-bottom: 15px;
+}
+
+/* 链接颜色（如果需要）*/
+a {
+    color: var(--color-accent-pink);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--color-glow-pink);
+    text-decoration: underline;
+}

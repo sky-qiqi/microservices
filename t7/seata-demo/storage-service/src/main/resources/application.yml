@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: storage-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.231.128:8848
+      config:
+        server-addr: 192.168.231.128:8848
+        import-check:
+          enabled: false
+    alibaba:
+      seata:
+        tx-service-group: default_tx_group
+  config:
+    import:
+      - optional:nacos
+  datasource:
+    # Standard datasource configuration for Spring Boot
+    url: jdbc:mysql://192.168.231.128:3306/seata_storage?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+    dynamic:
+      primary: master
+      strict: false
+      datasource:
+        master:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://192.168.231.128:3306/seata_order?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+          username: root
+          password: 1234
+
+server:
+  port: 8080
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: default_tx_group
+  service:
+    vgroup-mapping:
+      default_tx_group: default
+    grouplist:
+      default: 192.168.231.128:8091
+  registry:
+    type: nacos
+    nacos:
+      server-addr: 192.168.231.128:8848
+      application: seata-server
+      group: DEFAULT_GROUP
+
+logging:
+  level:
+    org.springframework.boot: DEBUG
+    org.springframework.jdbc: DEBUG
+    io.seata: DEBUG

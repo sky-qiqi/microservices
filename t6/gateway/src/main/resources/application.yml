@@ -1,0 +1,184 @@
+server:
+  port: 8080 # Gateway port
+
+spring:
+  cloud:
+    gateway:
+      # 0, 配置gateway支持全局跨越请求. (via YAML)
+      globalcors:
+        cors-configurations:
+          '[/**]': # Apply to all paths
+            # allowedOrigins: "*" # Allow all origins - 修正：与 allowCredentials: true 冲突，已替换为 allowedOriginPatterns
+            allowedOriginPatterns: "http://localhost:63342" # 允许特定来源，与 allowCredentials: true 兼容
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*" # Allow all headers
+            allowCredentials: true # Allow credentials (like cookies)
+            maxAge: 3600
+
+
+      routes:
+        # 1, Weighted Load Balancing for Order and User groups
+        # Requests containing 'ord' in the path go to order-group
+        - id: order_route
+          uri: lb://order-group # 通过 LoadBalancer 路由到 order-group
+          predicates:
+            - Path=/ord/** # Match paths starting with /ord/
+          filters:
+            # 3, Add Response Header
+            - AddResponseHeader=rsadd, 123
+            # 6, Rate Limiting (example: 10 requests per 10 seconds per IP)
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@remoteAddressKeyResolver}" # Use IP address as key
+
+        # Requests containing 'user' in the path go to user-group
+        - id: user_route
+          uri: lb://user-group # 通过 LoadBalancer 路由到 user-group
+          predicates:
+            - Path=/user/** # Match paths starting with /user/
+          filters:
+            # 3, Add Response Header
+            - AddResponseHeader=rsadd, 123
+            # 6, Rate Limiting (example: 10 requests per 10 seconds per IP)
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@remoteAddressKeyResolver}" # Use IP address as key
+
+        # 2, Special route for ordspecial with cookie
+        - id: ord_special_route
+          uri: http://127.0.0.1:8083 # 直接路由到 provider-ord2 (8083) - 使用 127.0.0.1
+          predicates:
+            - Path=/ordspecial # Match path /ordspecial
+            - Cookie=name, .+ # Match cookie 'name' with any value
+          filters:
+            # 3, Add Response Header
+            - AddResponseHeader=rsadd, 123
+            # 6, Rate Limiting (example: 2 requests per 2 seconds per IP - VERY LOW FOR TESTING)
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2 # 临时设置为 2 次/秒（令牌补充速率），更容易触发
+                redis-rate-limiter.burstCapacity: 2 # 临时设置为突发容量 2 次，更容易触发
+                key-resolver: "#{@remoteAddressKeyResolver}" # Use IP address as key
+
+
+        # 4, URL Rewriting route for test1
+        - id: rewrite_test1_route
+          uri: lb://provider-test1 # 通过 LoadBalancer 路由到 provider-test1
+          predicates:
+            - Path=/test1 # Match external path /test1
+          filters:
+            # Rewrite the path from /test1 to /x/y/test1 before forwarding
+            - RewritePath=/test1, /x/y/test1
+            # 3, Add Response Header
+            - AddResponseHeader=rsadd, 123
+            # 6, Rate Limiting
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 15
+                key-resolver: "#{@remoteAddressKeyResolver}" # Use IP address as key
+
+
+        # 5, Filter Test 1 route (Encryption)
+        - id: filter_test1_route
+          uri: lb://provider-test1 # Use LoadBalancer to provider-test1
+          predicates:
+            - Path=/filtertest1 # Match path /filtertest1
+          filters:
+            # *** IMPORTANT: Cache the request body BEFORE custom body-modifying filters ***
+            - name: CachedRequestBody
+            # Apply custom filtertest1 for encryption
+            - name: FilterTest1
+              args:
+                # Corrected AES Key (must be 16, 24, or 32 bytes). "abcdefghijklmnop" is exactly 16 bytes in UTF-8.
+                key: "abcdefghijklmnop"
+            # 3, Add Response Header
+            - AddResponseHeader=rsadd, 123
+            # 6, Rate Limiting
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 15
+                key-resolver: "#{@remoteAddressKeyResolver}" # Use IP address as key
+
+
+        # 5, Filter Test 2 route (Decryption)
+        # This route receives requests potentially with encrypted data
+        - id: filter_test2_route
+          uri: lb://provider-test2 # 通过 LoadBalancer 路由到 provider-test2
+          predicates:
+            - Path=/filtertest2 # Match path /filtertest2
+          filters:
+            # *** IMPORTANT: Cache the request body BEFORE custom body-modifying filters ***
+            - name: CachedRequestBody
+            # Apply custom filtertest2 for decryption
+            - name: FilterTest2
+              args:
+                # Corrected AES Key (must match FilterTest1 key). "abcdefghijklmnop" is exactly 16 bytes in UTF-8.
+                key: "abcdefghijklmnop"
+            # 3, Add Response Header
+            - AddResponseHeader=rsadd, 123
+            # 6, Rate Limiting
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 15
+                key-resolver: "#{@remoteAddressKeyResolver}" # Use IP address as key
+
+
+
+    # 1, Configure Load Balancer instances with weights - 这些配置将由 LoadBalancer 自动配置读取，但我们通过编程方式提供了更可靠的 ServiceInstanceListSupplier
+    loadbalancer:
+      instances:
+        # Order group instances with weights (Total weight 3+7=10)
+        order-group:
+          - uri: http://127.0.0.1:8081 # provider-ord1 - 使用 127.0.0.1
+            weight: 3 # ~30% of traffic for order-group goes here
+          - uri: http://127.0.0.1:8083 # provider-ord2 - 使用 127.0.0.1
+            weight: 7 # ~70% of traffic for order-group goes here
+        # User group instances with weights (Total weight 3+7=10)
+        user-group:
+          - uri: http://127.0.0.1:8084 # provider-user1 - 使用 127.0.0.1
+            weight: 3 # ~30% of traffic for user-group goes here
+          - uri: http://127.0.0.1:8085 # provider-user2 - 使用 127.0.0.1
+            weight: 7 # ~70% of traffic for user-group goes here
+        # Instances for specific providers used by other routes (no weighting needed for single instance)
+        provider-test1:
+          - uri: http://127.0.0.1:8086 # provider-test1 - 使用 127.0.0.1
+        provider-test2:
+          - uri: http://127.0.0.1:8087 # provider-test2 - 使用 127.0.0.1
+logging:
+  level:
+    org.springframework.cloud.loadbalancer: DEBUG
+    reactor.netty: DEBUG # 记录底层网络连接信息
+
+  # 6, Redis Configuration for Rate Limiting
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5s # Optional: Connection timeout
+
+# 5, Global Filter configuration order
+# Global filters are applied to all routes.
+# Order matters: HIGHEST_PRECEDENCE runs first.
+# CachedRequestBodyFilter runs early (default order 0).
+# Our GlobalLoggingFilter is set to run just after (order HIGHEST_PRECEDENCE + 1).
+# Custom factories (like FilterTest1/2) are applied where defined in routes.
+# You can explicitly define the order of global filters if needed, but using @Order or implementing Ordered
+# within the filter class itself is standard.
+# Example of explicitly ordering a global filter bean if it weren't @Component and Ordered:
+# spring:
+#   cloud:
+#     gateway:
+#       global-filters:
+#         - globalLoggingFilter: -1 # Example order for a bean named globalLoggingFilter

@@ -1,0 +1,9 @@
+server:
+  port: 8080 # 网页前端运行端口
+spring:
+  application:
+    name: web-front # 注册到 Eureka Server 的服务名称
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/ # Eureka Server 的地址

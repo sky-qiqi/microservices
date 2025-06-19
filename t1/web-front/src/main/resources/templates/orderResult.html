@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>订单结果</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .message { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .order-details { margin-top: 20px; border: 1px solid #ccc; padding: 15px; background-color: #f0f0f0; border-radius: 5px; }
+        .order-details p { margin: 5px 0; }
+        a { display: inline-block; margin-top: 20px; padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+        a:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+<h1>订单结果</h1>
+
+<div th:if="${message}" class="message">
+    <p th:text="${message}"></p>
+</div>
+<div th:if="${error}" class="error">
+    <p th:text="${error}"></p>
+</div>
+
+<div th:if="${order}" class="order-details">
+    <h2>订单详情</h2>
+    <p><strong>订单ID:</strong> <span th:text="${order.orderId}"></span></p>
+    <p><strong>用户ID:</strong> <span th:text="${order.userId}"></span></p>
+    <p><strong>用户名称:</strong> <span th:text="${order.userName}"></span></p>
+    <p><strong>用户邮箱:</strong> <span th:text="${order.userEmail}"></span></p>
+    <p><strong>商品ID:</strong> <span th:text="${order.productId}"></span></p>
+    <p><strong>商品名称:</strong> <span th:text="${order.productName}"></span></p>
+    <p><strong>商品价格:</strong> <span th:text="${order.productPrice}"></span></p>
+    <p><strong>下单时间:</strong> <span th:text="${#temporals.format(order.orderTime, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+    <p><strong>订单状态:</strong> <span th:text="${order.status}"></span></p>
+</div>
+
+<a href="/">返回下单页面</a>
+</body>
+</html>

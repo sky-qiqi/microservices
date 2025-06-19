@@ -1,0 +1,6 @@
+server:
+  port: 8085 # Unique port
+
+spring:
+  application:
+    name: provider-user2

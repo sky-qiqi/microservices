@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: http://192.168.68.131:9091/jmt/testa.git
+          username: qiqi
+          password: Jmt123456
+          default-label: main
+
+server:
+  port: 8888

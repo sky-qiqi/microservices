@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>网关测试</title>
+        <style>
+            body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+            button { margin: 5px; padding: 10px; cursor: pointer; }
+            #result {
+                    margin-top: 20px;
+                    padding: 15px;
+                    border: 1px solid #ccc;
+                    background-color: #f9f9f9;
+                    white-space: pre-wrap; /* Preserve line breaks */
+                    word-break: break-word; /* Break long words */
+                    max-height: 400px; /* Limit height */
+                    overflow-y: auto; /* Add scroll if content overflows */
+                    font-family: monospace; /* Monospace font for results */
+                }
+            h1, h2 { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 20px; }
+            .section { margin-bottom: 30px; }
+        </style>
+</head>
+<body>
+<h1>Spring Cloud Gateway 测试 (t6)</h1>
+
+<div class="section">
+        <h2>路由测试</h2>
+        <p>点击这些按钮测试加权负载均衡、特殊路由和 URL 重写。</p>
+        <button onclick="makeRequest('/ord/item/1')">请求订单 (加权 ORD 组)</button>
+        <button onclick="makeRequest('/user/profile/1')">请求用户 (加权 USER 组)</button>
+        <button onclick="makeRequest('/ordspecial', true)">请求特殊订单 (带 Cookie 'name')</button>
+        <button onclick="makeRequest('/ordspecial', false)">请求特殊订单 (不带 Cookie)</button>
+        <button onclick="makeRequest('/test1')">请求重写测试 (外部 /test1 -> 内部 /x/y/test1)</button>
+</div>
+
+<div class="section">
+        <h2>过滤器测试 (AES 请求体加解密)</h2>
+        <p>输入包含 'mydata' 字段的 JSON。FilterTest1 在转发前加密 'mydata'。FilterTest2 解密 'mydata'。</p>
+        <p>过滤器测试输入 (JSON 'mydata' 字段): <input type="text" id="myDataInput" value='{"someField":"hello world","mydata":"sensitive data here","anotherField":123}' size="80"></p>
+        <button onclick="sendFilterTest1()">发送到 FilterTest1 (加密 & 调用 provider-test1 -> 网关 /filtertest2 -> provider-test2)</button>
+        <button onclick="sendFilterTest2()">直接发送到 FilterTest2 (解密 & 调用 provider-test2)</button>
+
+</div>
+
+<div class="section">
+        <h2>限流测试</h2>
+        <p>通过快速重复点击下面的按钮来测试限流功能。当达到限流阈值时，您应该会收到 429 Too Many Requests 响应。</p>
+        <button onclick="makeRequest('/ordspecial', true)">快速点击测试限流 (/ordspecial 带 Cookie)</button>
+</div>
+
+
+<h2>结果</h2>
+<pre id="result">响应将显示在这里...</pre>
+
+<script>
+    const resultDiv = document.getElementById('result');
+    const myDataInput = document.getElementById('myDataInput');
+    const gatewayUrl = 'http://localhost:8080'; // 网关地址
+
+    function logToResult(message) {
+        resultDiv.textContent = message;
+    }
+
+    function logAndAppendToResult(message) {
+        resultDiv.textContent += message + '\n';
+    }
+
+
+    function makeRequest(path, setCookie = false) {
+        logToResult('加载中...');
+        const url = gatewayUrl + path;
+
+        // Set cookie if required
+        if (setCookie) {
+            document.cookie = "name=testvalue;path=/"; // 为根路径设置 Cookie
+            console.log("Cookie 'name=testvalue' 已为路径 / 设置");
+        } else {
+            // Optional: clear the cookie for comparison
+            document.cookie = "name=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            console.log("Cookie 'name' 已清除。");
+        }
+
+        console.log(`正在发送 GET 请求到: ${url}`);
+
+        fetch(url, {
+            method: 'GET',
+            // Cookies are automatically sent by the browser for the same origin
+            headers: {
+                // Add any other headers if needed
+                'Cache-Control': 'no-cache' // 测试期间阻止浏览器缓存
+            }
+        })
+            .then(response => {
+                console.log('原始响应:', response);
+                console.log('响应头:', Array.from(response.headers.entries()));
+
+                // Read response body as text
+                return response.text().then(text => ({
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    text: text
+                }));
+            })
+            .then(data => {
+                logToResult(`状态: ${data.status} ${data.statusText}\n`);
+                logAndAppendToResult(`--- 响应头 ---`);
+                Array.from(data.headers.entries()).forEach(entry => {
+                    logAndAppendToResult(`${entry[0]}: ${entry[1]}`);
+                });
+                logAndAppendToResult(`-------------\n`);
+                logAndAppendToResult(`--- 响应体 ---`);
+                logAndAppendToResult(data.text);
+                logAndAppendToResult(`------------`);
+            })
+            .catch(error => {
+                logToResult(`错误: ${error}`);
+                console.error('Fetch error:', error);
+            });
+    }
+
+    function sendFilterTest1() {
+        const url = gatewayUrl + '/filtertest1'; // 通过网关调用 provider-test1 (然后通过网关调用 /filtertest2 -> provider-test2)
+        const myData = myDataInput.value; // 从输入框获取 JSON 字符串
+
+        logToResult('加载中...');
+        console.log(`正在发送到 ${url}，请求体:`, myData);
+
+        fetch(url, {
+            method: 'POST', // 过滤器测试预期请求体，使用 POST
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            },
+            body: myData // 发送 JSON 字符串作为请求体
+        })
+            .then(response => {
+                console.log('原始响应:', response);
+                console.log('响应头:', Array.from(response.headers.entries()));
+                return response.text().then(text => ({
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    text: text
+                }));
+            })
+            .then(data => {
+                logToResult(`状态: ${data.status} ${data.statusText}\n`);
+                logAndAppendToResult(`--- 响应头 ---`);
+                Array.from(data.headers.entries()).forEach(entry => {
+                    logAndAppendToResult(`${entry[0]}: ${entry[1]}`);
+                });
+                logAndAppendToResult(`-------------\n`);
+                logAndAppendToResult(`--- 响应体 ---`);
+                logAndAppendToResult(data.text);
+                logAndAppendToResult(`------------`);
+            })
+            .catch(error => {
+                logToResult(`错误: ${error}`);
+                console.error('Fetch error:', error);
+            });
+    }
+
+    function sendFilterTest2() {
+        const url = gatewayUrl + '/filtertest2'; // 通过网关调用 provider-test2 (如果需要则解密)
+        const myData = myDataInput.value; // 从输入框获取 JSON 字符串
+
+        logToResult('加载中...');
+        console.log(`正在发送到 ${url}，请求体:`, myData);
+
+        fetch(url, {
+            method: 'POST', // 过滤器测试预期请求体，使用 POST
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            },
+            body: myData // 发送 JSON 字符串作为请求体
+        })
+            .then(response => {
+                console.log('原始响应:', response);
+                console.log('响应头:', Array.from(response.headers.entries()));
+                return response.text().then(text => ({
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    text: text
+                }));
+            })
+            .then(data => {
+                logToResult(`状态: ${data.status} ${data.statusText}\n`);
+                logAndAppendToResult(`--- 响应头 ---`);
+                Array.from(data.headers.entries()).forEach(entry => {
+                    logAndAppendToResult(`${entry[0]}: ${entry[1]}`);
+                });
+                logAndAppendToResult(`-------------\n`);
+                logAndAppendToResult(`--- 响应体 ---`);
+                logAndAppendToResult(data.text);
+                logAndAppendToResult(`------------`);
+            })
+            .catch(error => {
+                logToResult(`错误: ${error}`);
+                console.error('Fetch error:', error);
+            });
+    }
+
+</script>
+</body>
+</html>

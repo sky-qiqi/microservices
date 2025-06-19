@@ -1,0 +1,6 @@
+server:
+  port: 8081 # 第一个实例的端口
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${server.port} # 实例ID，包含端口以区分
